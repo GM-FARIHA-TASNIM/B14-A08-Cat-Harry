@@ -1,15 +1,27 @@
+let jwksPromise;
+
+const getJWKS = async () => {
+  if (!jwksPromise) {
+    jwksPromise = (async () => {
+      const { createRemoteJWKSet } = await import("jose");
+
+      const authBaseURL = (
+        process.env.BETTER_AUTH_URL ||
+        process.env.CLIENT_URL ||
+        "http://localhost:3000"
+      ).replace(/\/$/, "");
+
+      const JWKS = createRemoteJWKSet(new URL("/api/auth/jwks", authBaseURL));
+
+      return { JWKS, authBaseURL };
+    })();
+  }
+
+  return jwksPromise;
+};
+
 const verifyToken = async (req, res, next) => {
   try {
-    const { createRemoteJWKSet, jwtVerify } = await import("jose");
-
-    const authBaseURL = (
-      process.env.BETTER_AUTH_URL ||
-      process.env.CLIENT_URL ||
-      "http://localhost:3000"
-    ).replace(/\/$/, "");
-
-    const JWKS = createRemoteJWKSet(new URL("/api/auth/jwks", authBaseURL));
-
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -19,7 +31,7 @@ const verifyToken = async (req, res, next) => {
       });
     }
 
-    const token = authHeader.split(" ")[1];
+    const token = authHeader.slice(7).trim();
 
     if (!token) {
       return res.status(401).json({
@@ -28,12 +40,20 @@ const verifyToken = async (req, res, next) => {
       });
     }
 
+    const { jwtVerify } = await import("jose");
+    const { JWKS, authBaseURL } = await getJWKS();
+
     const { payload } = await jwtVerify(token, JWKS, {
       issuer: authBaseURL,
       audience: authBaseURL,
     });
 
-    if (!payload.sub || !payload.email) {
+    if (
+      typeof payload.sub !== "string" ||
+      !payload.sub ||
+      typeof payload.email !== "string" ||
+      !payload.email
+    ) {
       return res.status(401).json({
         success: false,
         message: "Invalid token payload",
@@ -45,7 +65,7 @@ const verifyToken = async (req, res, next) => {
       email: payload.email,
     };
 
-    next();
+    return next();
   } catch (error) {
     console.error("JWT Verification Error:", error.message);
 
