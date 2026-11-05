@@ -2,6 +2,10 @@ const { MongoClient, ServerApiVersion } = require("mongodb");
 
 const uri = process.env.MONGODB_URI;
 
+if (!uri) {
+  throw new Error("MONGODB_URI is missing from the environment variables");
+}
+
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -13,8 +17,13 @@ const client = new MongoClient(uri, {
 });
 
 let db;
+let isConnected = false;
 
 const connectDB = async () => {
+  if (isConnected && db) {
+    return db;
+  }
+
   try {
     await client.connect();
 
@@ -22,17 +31,23 @@ const connectDB = async () => {
 
     await db.command({ ping: 1 });
 
+    isConnected = true;
+
     console.log("MongoDB connected successfully!");
 
     return db;
   } catch (error) {
+    isConnected = false;
+    db = undefined;
+
     console.error("MongoDB connection failed:", error.message);
-    process.exit(1);
+
+    throw error;
   }
 };
 
 const getDB = () => {
-  if (!db) {
+  if (!isConnected || !db) {
     throw new Error("Database is not connected yet!");
   }
 
