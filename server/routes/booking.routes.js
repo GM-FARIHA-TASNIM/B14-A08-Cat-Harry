@@ -5,13 +5,39 @@ const verifyToken = require("../middleware/verify-token");
 
 const router = express.Router();
 
+const isValidDate = (date) => {
+  if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return false;
+  }
+
+  const parsedDate = new Date(`${date}T00:00:00.000Z`);
+
+  return (
+    !Number.isNaN(parsedDate.getTime()) &&
+    parsedDate.toISOString().slice(0, 10) === date
+  );
+};
+
+const isValidTime = (time) => {
+  if (typeof time !== "string" || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) {
+    return false;
+  }
+
+  return true;
+};
+
 // Create Booking
 router.post("/", verifyToken, async (req, res) => {
   try {
-    const db = getDB();
     const { studioId, date, startTime, endTime } = req.body;
 
-    if (!ObjectId.isValid(studioId) || !date || !startTime || !endTime) {
+    if (
+      typeof studioId !== "string" ||
+      !ObjectId.isValid(studioId) ||
+      !isValidDate(date) ||
+      !isValidTime(startTime) ||
+      !isValidTime(endTime)
+    ) {
       return res.status(400).json({
         success: false,
         message: "Please provide valid booking information",
@@ -24,6 +50,8 @@ router.post("/", verifyToken, async (req, res) => {
         message: "End time must be later than start time",
       });
     }
+
+    const db = getDB();
 
     const studio = await db.collection("studios").findOne({
       _id: new ObjectId(studioId),
@@ -65,9 +93,11 @@ router.post("/", verifyToken, async (req, res) => {
       bookingId: result.insertedId,
     });
   } catch (error) {
+    console.error("Create booking error:", error.message);
+
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Failed to create booking",
     });
   }
 });
@@ -81,9 +111,17 @@ router.get("/my-bookings", verifyToken, async (req, res) => {
       .sort({ createdAt: -1 })
       .toArray();
 
-    res.json({ success: true, bookings });
+    res.status(200).json({
+      success: true,
+      bookings,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Fetch customer bookings error:", error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch bookings",
+    });
   }
 });
 
@@ -106,16 +144,23 @@ router.get("/host-bookings", verifyToken, async (req, res) => {
       .sort({ createdAt: -1 })
       .toArray();
 
-    res.json({ success: true, bookings });
+    res.status(200).json({
+      success: true,
+      bookings,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Fetch host bookings error:", error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch host bookings",
+    });
   }
 });
 
 // Host Updates Booking Status
 router.patch("/:id/status", verifyToken, async (req, res) => {
   try {
-    const db = getDB();
     const { id } = req.params;
     const { status } = req.body;
 
@@ -132,6 +177,8 @@ router.patch("/:id/status", verifyToken, async (req, res) => {
         message: "Invalid booking status",
       });
     }
+
+    const db = getDB();
 
     const booking = await db.collection("bookings").findOne({
       _id: new ObjectId(id),
@@ -181,8 +228,11 @@ router.patch("/:id/status", verifyToken, async (req, res) => {
       }
     }
 
-    await db.collection("bookings").updateOne(
-      { _id: booking._id },
+    const result = await db.collection("bookings").updateOne(
+      {
+        _id: booking._id,
+        status: "Pending",
+      },
       {
         $set: {
           status,
@@ -191,12 +241,24 @@ router.patch("/:id/status", verifyToken, async (req, res) => {
       },
     );
 
-    res.json({
+    if (!result.modifiedCount) {
+      return res.status(409).json({
+        success: false,
+        message: "Booking status has already been changed",
+      });
+    }
+
+    res.status(200).json({
       success: true,
       message: `Booking ${status.toLowerCase()} successfully`,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Update booking status error:", error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to update booking status",
+    });
   }
 });
 
@@ -233,12 +295,17 @@ router.patch("/:id/cancel", verifyToken, async (req, res) => {
       });
     }
 
-    res.json({
+    res.status(200).json({
       success: true,
       message: "Booking cancelled successfully",
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Cancel booking error:", error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to cancel booking",
+    });
   }
 });
 
