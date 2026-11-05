@@ -19,6 +19,35 @@ const client = new MongoClient(uri, {
 let db;
 let isConnected = false;
 
+const createDatabaseIndexes = async () => {
+  await Promise.all([
+    db.collection("studios").createIndex({
+      hostEmail: 1,
+      createdAt: -1,
+    }),
+
+    db.collection("studios").createIndex({
+      createdAt: -1,
+    }),
+
+    db.collection("bookings").createIndex({
+      customerEmail: 1,
+      createdAt: -1,
+    }),
+
+    db.collection("bookings").createIndex({
+      studioId: 1,
+      date: 1,
+      status: 1,
+    }),
+
+    db.collection("bookings").createIndex({
+      hostEmail: 1,
+      createdAt: -1,
+    }),
+  ]);
+};
+
 const connectDB = async () => {
   if (isConnected && db) {
     return db;
@@ -30,10 +59,12 @@ const connectDB = async () => {
     db = client.db("studiospace");
 
     await db.command({ ping: 1 });
+    await createDatabaseIndexes();
 
     isConnected = true;
 
     console.log("MongoDB connected successfully!");
+    console.log("Database indexes created successfully!");
 
     return db;
   } catch (error) {
