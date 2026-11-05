@@ -5,12 +5,64 @@ const verifyToken = require("../middleware/verify-token");
 
 const router = express.Router();
 
+const validateStudio = (data) => {
+  const {
+    title,
+    category,
+    hourlyRate,
+    securityDeposit,
+    capacity,
+    location,
+    image,
+    description,
+  } = data;
+
+  if (
+    typeof title !== "string" ||
+    !title.trim() ||
+    typeof category !== "string" ||
+    !category.trim() ||
+    typeof location !== "string" ||
+    !location.trim() ||
+    typeof image !== "string" ||
+    !image.trim() ||
+    typeof description !== "string" ||
+    !description.trim()
+  ) {
+    return "Please provide all required studio information";
+  }
+
+  const rate = Number(hourlyRate);
+  const deposit = Number(securityDeposit ?? 0);
+  const maxCapacity = Number(capacity);
+
+  if (!Number.isFinite(rate) || rate <= 0) {
+    return "Hourly rate must be a positive number";
+  }
+
+  if (!Number.isFinite(deposit) || deposit < 0) {
+    return "Security deposit cannot be negative";
+  }
+
+  if (!Number.isInteger(maxCapacity) || maxCapacity <= 0) {
+    return "Capacity must be a positive whole number";
+  }
+
+  if (
+    data.amenities !== undefined &&
+    (!Array.isArray(data.amenities) ||
+      !data.amenities.every((item) => typeof item === "string" && item.trim()))
+  ) {
+    return "Amenities must be a list of valid text values";
+  }
+
+  return null;
+};
+
 // Get all studios
 router.get("/", async (req, res) => {
   try {
-    const db = getDB();
-
-    const studios = await db
+    const studios = await getDB()
       .collection("studios")
       .find()
       .sort({ createdAt: -1 })
@@ -22,6 +74,8 @@ router.get("/", async (req, res) => {
       studios,
     });
   } catch (error) {
+    console.error("Fetch studios error:", error.message);
+
     res.status(500).json({
       success: false,
       message: "Failed to fetch studios",
@@ -39,11 +93,9 @@ router.get("/:id", async (req, res) => {
       });
     }
 
-    const db = getDB();
-
-    const studio = await db.collection("studios").findOne({
-      _id: new ObjectId(req.params.id),
-    });
+    const studio = await getDB()
+      .collection("studios")
+      .findOne({ _id: new ObjectId(req.params.id) });
 
     if (!studio) {
       return res.status(404).json({
@@ -54,6 +106,8 @@ router.get("/:id", async (req, res) => {
 
     res.status(200).json({ success: true, studio });
   } catch (error) {
+    console.error("Fetch studio error:", error.message);
+
     res.status(500).json({
       success: false,
       message: "Failed to fetch studio",
@@ -64,7 +118,14 @@ router.get("/:id", async (req, res) => {
 // Add new studio
 router.post("/", verifyToken, async (req, res) => {
   try {
-    const db = getDB();
+    const validationError = validateStudio(req.body);
+
+    if (validationError) {
+      return res.status(400).json({
+        success: false,
+        message: validationError,
+      });
+    }
 
     const {
       title,
@@ -78,31 +139,16 @@ router.post("/", verifyToken, async (req, res) => {
       description,
     } = req.body;
 
-    if (
-      !title ||
-      !category ||
-      !hourlyRate ||
-      !capacity ||
-      !location ||
-      !image ||
-      !description
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Please fill in all required fields",
-      });
-    }
-
     const studioData = {
-      title,
-      category,
+      title: title.trim(),
+      category: category.trim(),
       hourlyRate: Number(hourlyRate),
-      securityDeposit: Number(securityDeposit || 0),
+      securityDeposit: Number(securityDeposit ?? 0),
       capacity: Number(capacity),
-      location,
-      image,
-      amenities: Array.isArray(amenities) ? amenities : [],
-      description,
+      location: location.trim(),
+      image: image.trim(),
+      amenities: amenities || [],
+      description: description.trim(),
       rating: 0,
       hostEmail: req.user.email,
       hostId: req.user.id,
@@ -110,7 +156,7 @@ router.post("/", verifyToken, async (req, res) => {
       updatedAt: new Date(),
     };
 
-    const result = await db.collection("studios").insertOne(studioData);
+    const result = await getDB().collection("studios").insertOne(studioData);
 
     res.status(201).json({
       success: true,
@@ -126,6 +172,7 @@ router.post("/", verifyToken, async (req, res) => {
     });
   }
 });
+
 // Update studio
 router.put("/:id", verifyToken, async (req, res) => {
   try {
@@ -136,24 +183,49 @@ router.put("/:id", verifyToken, async (req, res) => {
       });
     }
 
-    const db = getDB();
-    const { _id, hostEmail, hostId, createdAt, ...updates } = req.body;
+    const validationError = validateStudio(req.body);
 
-    const result = await db.collection("studios").updateOne(
-      {
-        _id: new ObjectId(req.params.id),
-        hostEmail: req.user.email,
-      },
-      {
-        $set: {
-          ...updates,
-          hourlyRate: Number(updates.hourlyRate),
-          securityDeposit: Number(updates.securityDeposit || 0),
-          capacity: Number(updates.capacity),
-          updatedAt: new Date(),
+    if (validationError) {
+      return res.status(400).json({
+        success: false,
+        message: validationError,
+      });
+    }
+
+    const {
+      title,
+      category,
+      hourlyRate,
+      securityDeposit,
+      capacity,
+      location,
+      image,
+      amenities,
+      description,
+    } = req.body;
+
+    const updates = {
+      title: title.trim(),
+      category: category.trim(),
+      hourlyRate: Number(hourlyRate),
+      securityDeposit: Number(securityDeposit ?? 0),
+      capacity: Number(capacity),
+      location: location.trim(),
+      image: image.trim(),
+      amenities: amenities || [],
+      description: description.trim(),
+      updatedAt: new Date(),
+    };
+
+    const result = await getDB()
+      .collection("studios")
+      .updateOne(
+        {
+          _id: new ObjectId(req.params.id),
+          hostEmail: req.user.email,
         },
-      },
-    );
+        { $set: updates },
+      );
 
     if (!result.matchedCount) {
       return res.status(404).json({
@@ -167,7 +239,8 @@ router.put("/:id", verifyToken, async (req, res) => {
       message: "Studio updated successfully",
     });
   } catch (error) {
-    console.error(error);
+    console.error("Update studio error:", error.message);
+
     res.status(500).json({
       success: false,
       message: "Failed to update studio",
@@ -185,12 +258,12 @@ router.delete("/:id", verifyToken, async (req, res) => {
       });
     }
 
-    const db = getDB();
-
-    const result = await db.collection("studios").deleteOne({
-      _id: new ObjectId(req.params.id),
-      hostEmail: req.user.email,
-    });
+    const result = await getDB()
+      .collection("studios")
+      .deleteOne({
+        _id: new ObjectId(req.params.id),
+        hostEmail: req.user.email,
+      });
 
     if (!result.deletedCount) {
       return res.status(404).json({
@@ -204,7 +277,8 @@ router.delete("/:id", verifyToken, async (req, res) => {
       message: "Studio deleted successfully",
     });
   } catch (error) {
-    console.error(error);
+    console.error("Delete studio error:", error.message);
+
     res.status(500).json({
       success: false,
       message: "Failed to delete studio",
