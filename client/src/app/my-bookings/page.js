@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
-import { CalendarDays, Clock3, MapPin, X, Camera } from "lucide-react";
+import { CalendarDays, Clock3, X, Camera } from "lucide-react";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export default function MyBookingsPage() {
   const [bookings, setBookings] = useState([]);
@@ -28,16 +29,15 @@ export default function MyBookingsPage() {
 
         if (!token) throw new Error("Authentication token not found");
 
-        const response = await fetch(
-          "http://localhost:5000/api/bookings/my-bookings",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
+        const response = await fetch(`${API_URL}/bookings/my-bookings`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         const result = await response.json();
 
-        if (!response.ok) throw new Error(result.message);
+        if (!response.ok) {
+          throw new Error(result.message || "Could not load bookings");
+        }
 
         setBookings(result.bookings || []);
       } catch (error) {
@@ -62,17 +62,16 @@ export default function MyBookingsPage() {
 
       if (!token) throw new Error("Authentication token not found");
 
-      const response = await fetch(
-        `http://localhost:5000/api/bookings/${id}/cancel`,
-        {
-          method: "PATCH",
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      const response = await fetch(`${API_URL}/bookings/${id}/cancel`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       const result = await response.json();
 
-      if (!response.ok) throw new Error(result.message);
+      if (!response.ok) {
+        throw new Error(result.message || "Cancellation failed");
+      }
 
       setBookings((previous) =>
         previous.map((item) =>

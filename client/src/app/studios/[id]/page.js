@@ -16,6 +16,8 @@ import {
   Loader2,
 } from "lucide-react";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
 export default function StudioDetailsPage() {
   const params = useParams();
   const router = useRouter();
@@ -31,9 +33,7 @@ export default function StudioDetailsPage() {
   useEffect(() => {
     const fetchStudio = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:5000/api/studios/${params.id}`,
-        );
+        const response = await fetch(`${API_URL}/studios/${params.id}`);
 
         const result = await response.json();
 
@@ -91,7 +91,7 @@ export default function StudioDetailsPage() {
         return;
       }
 
-      const response = await fetch("http://localhost:5000/api/bookings", {
+      const response = await fetch(`${API_URL}/bookings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
 const initialForm = {
   title: "",
   category: "Photo Studio",
@@ -35,7 +37,10 @@ export default function AddStudioPage() {
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   const handleAmenity = (amenity) => {
@@ -48,6 +53,9 @@ export default function AddStudioPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (loading) return;
+
     setLoading(true);
 
     try {
@@ -63,11 +71,10 @@ export default function AddStudioPage() {
       const token = tokenResponse.data?.token;
 
       if (!token) {
-        toast.error("Could not generate authentication token");
-        return;
+        throw new Error("Could not generate authentication token");
       }
 
-      const response = await fetch("http://localhost:5000/api/studios", {
+      const response = await fetch(`${API_URL}/studios`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -75,6 +82,9 @@ export default function AddStudioPage() {
         },
         body: JSON.stringify({
           ...form,
+          hourlyRate: Number(form.hourlyRate),
+          securityDeposit: Number(form.securityDeposit),
+          capacity: Number(form.capacity),
           amenities,
         }),
       });
@@ -86,10 +96,11 @@ export default function AddStudioPage() {
       }
 
       toast.success("Studio added successfully!");
+
       router.push("/my-listings");
       router.refresh();
     } catch (error) {
-      console.error(error);
+      console.error("Add Studio Error:", error);
       toast.error(error.message || "Something went wrong");
     } finally {
       setLoading(false);
@@ -106,9 +117,11 @@ export default function AddStudioPage() {
           <p className="mb-2 font-semibold text-violet-600">
             HOST YOUR CREATIVE SPACE
           </p>
+
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white md:text-4xl">
             Add a New Studio
           </h1>
+
           <p className="mt-3 text-gray-600 dark:text-gray-400">
             Share your workspace with creators and start earning.
           </p>
@@ -120,6 +133,7 @@ export default function AddStudioPage() {
         >
           <div>
             <label className="mb-2 block font-medium">Studio Title *</label>
+
             <input
               name="title"
               value={form.title}
@@ -133,6 +147,7 @@ export default function AddStudioPage() {
           <div className="grid gap-5 md:grid-cols-2">
             <div>
               <label className="mb-2 block font-medium">Category *</label>
+
               <select
                 name="category"
                 value={form.category}
@@ -151,6 +166,7 @@ export default function AddStudioPage() {
               <label className="mb-2 block font-medium">
                 Hourly Rate (৳) *
               </label>
+
               <input
                 type="number"
                 min="1"
@@ -167,6 +183,7 @@ export default function AddStudioPage() {
               <label className="mb-2 block font-medium">
                 Security Deposit (৳)
               </label>
+
               <input
                 type="number"
                 min="0"
@@ -182,6 +199,7 @@ export default function AddStudioPage() {
               <label className="mb-2 block font-medium">
                 Maximum Capacity *
               </label>
+
               <input
                 type="number"
                 min="1"
@@ -197,6 +215,7 @@ export default function AddStudioPage() {
 
           <div>
             <label className="mb-2 block font-medium">Location *</label>
+
             <input
               name="location"
               value={form.location}
@@ -209,6 +228,7 @@ export default function AddStudioPage() {
 
           <div>
             <label className="mb-2 block font-medium">Studio Image URL *</label>
+
             <input
               type="url"
               name="image"
@@ -218,9 +238,11 @@ export default function AddStudioPage() {
               placeholder="https://example.com/studio-image.jpg"
               required
             />
+
             <p className="mt-2 text-xs text-gray-500">
               Upload your image to imgbb and paste its direct image URL here.
             </p>
+
             {form.image && (
               <img
                 src={form.image}
@@ -235,6 +257,7 @@ export default function AddStudioPage() {
 
           <div>
             <label className="mb-3 block font-medium">Amenities</label>
+
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {amenityOptions.map((amenity) => (
                 <label
@@ -247,6 +270,7 @@ export default function AddStudioPage() {
                     onChange={() => handleAmenity(amenity)}
                     className="h-4 w-4 accent-violet-600"
                   />
+
                   <span className="text-sm">{amenity}</span>
                 </label>
               ))}
@@ -257,6 +281,7 @@ export default function AddStudioPage() {
             <label className="mb-2 block font-medium">
               Studio Description *
             </label>
+
             <textarea
               name="description"
               value={form.description}

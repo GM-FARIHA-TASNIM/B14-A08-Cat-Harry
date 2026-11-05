@@ -7,6 +7,8 @@ import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { Plus, MapPin, Users, Pencil, Trash2, Home } from "lucide-react";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
 export default function MyListingsPage() {
   const router = useRouter();
 
@@ -28,8 +30,7 @@ export default function MyListingsPage() {
           return;
         }
 
-        const response = await fetch("http://localhost:5000/api/studios");
-
+        const response = await fetch(`${API_URL}/studios`);
         const result = await response.json();
 
         if (!response.ok) {
@@ -66,15 +67,12 @@ export default function MyListingsPage() {
         throw new Error("Authentication token unavailable");
       }
 
-      const response = await fetch(
-        `http://localhost:5000/api/studios/${deleting._id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(`${API_URL}/studios/${deleting._id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       const result = await response.json();
 
@@ -125,7 +123,6 @@ export default function MyListingsPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {/* Back to Home */}
             <Link
               href="/"
               className="flex items-center gap-2 rounded-xl border border-gray-300 px-5 py-3 font-semibold text-gray-700 transition hover:border-violet-600 hover:bg-violet-50 hover:text-violet-700 dark:border-gray-700 dark:text-white dark:hover:bg-violet-950"
@@ -134,7 +131,6 @@ export default function MyListingsPage() {
               Back to Home
             </Link>
 
-            {/* Add New Studio */}
             <Link
               href="/add-studio"
               className="flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-3 font-semibold text-white transition hover:bg-violet-700"
@@ -174,7 +170,7 @@ export default function MyListingsPage() {
                   src={
                     studio.image || "https://placehold.co/600x400?text=Studio"
                   }
-                  alt={studio.title}
+                  alt={studio.title || "Studio"}
                   className="h-52 w-full object-cover"
                 />
 
