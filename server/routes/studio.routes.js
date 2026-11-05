@@ -6,6 +6,10 @@ const verifyToken = require("../middleware/verify-token");
 const router = express.Router();
 
 const validateStudio = (data) => {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return "Invalid studio information";
+  }
+
   const {
     title,
     category,
@@ -15,21 +19,37 @@ const validateStudio = (data) => {
     location,
     image,
     description,
+    amenities,
   } = data;
 
   if (
     typeof title !== "string" ||
     !title.trim() ||
+    title.trim().length > 100 ||
     typeof category !== "string" ||
     !category.trim() ||
+    category.trim().length > 50 ||
     typeof location !== "string" ||
     !location.trim() ||
+    location.trim().length > 200 ||
     typeof image !== "string" ||
     !image.trim() ||
+    image.trim().length > 2048 ||
     typeof description !== "string" ||
-    !description.trim()
+    !description.trim() ||
+    description.trim().length > 2000
   ) {
-    return "Please provide all required studio information";
+    return "Please provide valid studio information";
+  }
+
+  try {
+    const imageURL = new URL(image.trim());
+
+    if (!["http:", "https:"].includes(imageURL.protocol)) {
+      return "Please provide a valid image URL";
+    }
+  } catch {
+    return "Please provide a valid image URL";
   }
 
   const rate = Number(hourlyRate);
@@ -44,16 +64,22 @@ const validateStudio = (data) => {
     return "Security deposit cannot be negative";
   }
 
-  if (!Number.isInteger(maxCapacity) || maxCapacity <= 0) {
+  if (!Number.isSafeInteger(maxCapacity) || maxCapacity <= 0) {
     return "Capacity must be a positive whole number";
   }
 
   if (
-    data.amenities !== undefined &&
-    (!Array.isArray(data.amenities) ||
-      !data.amenities.every((item) => typeof item === "string" && item.trim()))
+    amenities !== undefined &&
+    (!Array.isArray(amenities) ||
+      amenities.length > 30 ||
+      !amenities.every(
+        (item) =>
+          typeof item === "string" &&
+          item.trim().length > 0 &&
+          item.trim().length <= 50,
+      ))
   ) {
-    return "Amenities must be a list of valid text values";
+    return "Amenities must be a valid list of text values";
   }
 
   return null;
@@ -68,7 +94,7 @@ router.get("/", async (req, res) => {
       .sort({ createdAt: -1 })
       .toArray();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       total: studios.length,
       studios,
@@ -76,7 +102,7 @@ router.get("/", async (req, res) => {
   } catch (error) {
     console.error("Fetch studios error:", error.message);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to fetch studios",
     });
@@ -104,11 +130,14 @@ router.get("/:id", async (req, res) => {
       });
     }
 
-    res.status(200).json({ success: true, studio });
+    return res.status(200).json({
+      success: true,
+      studio,
+    });
   } catch (error) {
     console.error("Fetch studio error:", error.message);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to fetch studio",
     });
@@ -158,7 +187,7 @@ router.post("/", verifyToken, async (req, res) => {
 
     const result = await getDB().collection("studios").insertOne(studioData);
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Studio created successfully",
       studioId: result.insertedId,
@@ -166,7 +195,7 @@ router.post("/", verifyToken, async (req, res) => {
   } catch (error) {
     console.error("Add studio error:", error.message);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to create studio",
     });
@@ -234,14 +263,14 @@ router.put("/:id", verifyToken, async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Studio updated successfully",
     });
   } catch (error) {
     console.error("Update studio error:", error.message);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to update studio",
     });
@@ -272,14 +301,14 @@ router.delete("/:id", verifyToken, async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Studio deleted successfully",
     });
   } catch (error) {
     console.error("Delete studio error:", error.message);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to delete studio",
     });
