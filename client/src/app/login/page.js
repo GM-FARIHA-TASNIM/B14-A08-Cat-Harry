@@ -51,7 +51,7 @@ export default function LoginPage() {
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-extrabold">Welcome Back</h1>
           <p className="mt-2 text-sm text-gray-500">
-            Sign in to continue your creative journey.
+            Sign in to continue your creative journey with us.
           </p>
         </div>
 
