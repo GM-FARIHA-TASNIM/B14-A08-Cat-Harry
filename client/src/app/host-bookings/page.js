@@ -191,7 +191,9 @@ export default function HostBookingsPage() {
           <div className="rounded-2xl border border-dashed py-20 text-center">
             <Inbox size={45} className="mx-auto mb-4 text-gray-400" />
 
-            <h2 className="text-2xl font-bold">No booking requests found</h2>
+            <h2 className="text-2xl font-bold">
+              Sorry !! No booking requests found
+            </h2>
 
             <p className="mt-2 text-gray-500">
               {filter === "All"
