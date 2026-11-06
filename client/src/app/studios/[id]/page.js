@@ -310,7 +310,7 @@ export default function StudioDetailsPage() {
               {booking ? (
                 <>
                   <Loader2 size={18} className="animate-spin" />
-                  Processing...
+                  Processing....
                 </>
               ) : (
                 "Book Workspace Now"
