@@ -277,7 +277,7 @@ export default function EditStudioPage() {
           </div>
 
           <div>
-            <label className="mb-2 block font-medium">Location *</label>
+            <label className="mb-2 block font-medium">Your Location *</label>
             <input
               name="location"
               value={form.location}
@@ -361,7 +361,7 @@ export default function EditStudioPage() {
             {saving ? (
               <>
                 <Loader2 size={19} className="animate-spin" />
-                Saving Changes...
+                Saving Changes....
               </>
             ) : (
               <>
