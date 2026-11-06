@@ -255,7 +255,7 @@ export default function MyBookingsPage() {
             <p className="text-gray-600">
               Are you sure you want to cancel your booking for{" "}
               <strong>{selectedBooking.studioTitle}</strong>? This action cannot
-              be undone.
+              be undone once you confrimed.
             </p>
 
             <div className="mt-7 flex justify-end gap-3">
