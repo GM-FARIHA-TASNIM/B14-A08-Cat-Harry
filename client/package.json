@@ -8,6 +8,9 @@
     "start": "next start",
     "lint": "eslint"
   },
+  "engines": {
+    "node": "22.x"
+  },
   "dependencies": {
     "@better-auth/mongo-adapter": "^1.7.14",
     "@hookform/resolvers": "^7.0.0",
@@ -32,8 +35,4 @@
     "eslint-config-next": "16.4.3",
     "tailwindcss": "^4"
   }
-"engines": {
-  "node": "22.x"
 }
-}
-
