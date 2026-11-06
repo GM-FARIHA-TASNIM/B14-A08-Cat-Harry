@@ -32,7 +32,7 @@ export default function NotFound() {
 
         <p className="mx-auto mt-4 max-w-lg leading-7 text-muted-foreground">
           The page you are looking for may have moved, been removed, or never
-          existed. Let's get you back to discovering creative spaces.
+          existed. Let's get you back to discovering creative spaces.Thank You.
         </p>
 
         <div className="mt-9 flex flex-wrap justify-center gap-4">
