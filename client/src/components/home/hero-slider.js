@@ -48,7 +48,10 @@ export default function HeroSlider() {
   const slide = slides[activeSlide];
 
   return (
-    <section className="relative overflow-hidden bg-gray-950">
+    <section
+      aria-label="Featured creative spaces"
+      className="relative overflow-hidden bg-gray-950"
+    >
       <div
         className="relative flex min-h-screen items-center bg-cover bg-center transition-all duration-500"
         style={{
@@ -72,14 +75,14 @@ export default function HeroSlider() {
             <div className="mt-9 flex flex-wrap gap-4">
               <Link
                 href="/studios"
-                className="rounded-xl bg-violet-600 px-7 py-4 text-sm font-bold text-white transition-colors hover:bg-violet-700"
+                className="rounded-lg bg-[#7357f5] px-7 py-3.5 font-semibold text-white transition hover:bg-[#6042e8]"
               >
                 Explore Studios
               </Link>
 
               <Link
-                href="/studios"
-                className="rounded-xl border border-white/70 px-7 py-4 text-sm font-bold text-white transition-colors hover:bg-white hover:text-gray-950"
+                href="/add-studio"
+                className="rounded-lg border border-white/60 px-7 py-3.5 font-semibold text-white transition hover:bg-white hover:text-gray-950"
               >
                 Host Your Space
               </Link>
@@ -91,7 +94,7 @@ export default function HeroSlider() {
           type="button"
           onClick={previousSlide}
           aria-label="Previous slide"
-          className="absolute left-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-black/30 text-white transition hover:bg-violet-600 md:left-8"
+          className="absolute left-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-black/30 text-white backdrop-blur transition hover:bg-black/60 sm:left-8"
         >
           <ChevronLeft size={24} />
         </button>
@@ -100,7 +103,7 @@ export default function HeroSlider() {
           type="button"
           onClick={nextSlide}
           aria-label="Next slide"
-          className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-black/30 text-white transition hover:bg-violet-600 md:right-8"
+          className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-black/30 text-white backdrop-blur transition hover:bg-black/60 sm:right-8"
         >
           <ChevronRight size={24} />
         </button>
@@ -112,10 +115,11 @@ export default function HeroSlider() {
               type="button"
               onClick={() => setActiveSlide(index)}
               aria-label={`Go to slide ${index + 1}`}
-              className={`h-2.5 rounded-full transition-all ${
+              aria-current={activeSlide === index ? "true" : undefined}
+              className={`h-2.5 rounded-full transition-all duration-300 ${
                 activeSlide === index
-                  ? "w-9 bg-violet-500"
-                  : "w-2.5 bg-white/60"
+                  ? "w-10 bg-white"
+                  : "w-2.5 bg-white/50 hover:bg-white/80"
               }`}
             />
           ))}
