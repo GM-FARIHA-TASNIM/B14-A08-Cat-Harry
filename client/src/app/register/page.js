@@ -134,7 +134,8 @@ export default function RegisterPage() {
               className="w-full rounded-xl border border-gray-300 bg-transparent px-4 py-3 outline-none focus:border-violet-600 dark:border-gray-700"
             />
             <p className="mt-2 text-xs text-gray-500">
-              At least 6 characters, including uppercase and lowercase letters.
+              Please use at least 6 characters, including uppercase and
+              lowercase letters.
             </p>
           </div>
 
