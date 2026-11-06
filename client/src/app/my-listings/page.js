@@ -245,7 +245,7 @@ export default function MyListingsPage() {
             </div>
 
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              Delete Studio?
+              Are you sure to Delete Studio?
             </h2>
 
             <p className="mt-3 text-gray-600 dark:text-gray-400">
