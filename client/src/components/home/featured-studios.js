@@ -96,7 +96,7 @@ export default function FeaturedStudios() {
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center text-muted-foreground">
-                      No image available
+                      No image available.Try to find.
                     </div>
                   )}
 
