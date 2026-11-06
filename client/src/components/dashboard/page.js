@@ -390,7 +390,7 @@ export default function DashboardPage() {
               </h3>
 
               <p className="mt-2 text-sm text-gray-500">
-                Share your creative workspace with other creators.
+                Share your creative workspace & Ideas with other creators.
               </p>
 
               <Link
