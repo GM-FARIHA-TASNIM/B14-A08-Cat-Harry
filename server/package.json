@@ -10,6 +10,9 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": "22.x"
+  },
   "dependencies": {
     "better-auth": "^1.7.14",
     "cors": "^2.8.6",
