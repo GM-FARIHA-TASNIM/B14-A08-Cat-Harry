@@ -115,7 +115,8 @@ export default function TermsPage() {
 
           <p className="mt-3 text-sm leading-7 text-gray-300">
             If you need clarification about using StudioSpace, please contact
-            the platform team through the available support channels.
+            the platform team through the available support channels.We are
+            always with you.
           </p>
 
           <Link
