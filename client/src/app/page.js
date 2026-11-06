@@ -202,7 +202,7 @@ export default function HomePage() {
               Have a creative space to share?
             </h2>
             <p className="mx-auto mt-3 max-w-xl opacity-90">
-              Turn your studio into an opportunity. Connect with creators
+              Turn your studio into an opportunity & Connect with creators
               looking for the perfect place to work.
             </p>
             <Link
